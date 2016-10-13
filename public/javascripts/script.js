@@ -1,24 +1,14 @@
-console.log("Hello");
-
-//var fs = require('fs');
-
 var transcript;
 var wCount = new Array();//word count
 var sCount = new Array();//Speaker
-/*
-var TRUMP = {
-	'wCount' : new Array(),//word count
-	'sentCount' : new Array()//Speaker
-};
-
-var CLINTON = {
-	'wCount' : new Array(),//word count
-	'sentCount' : new Array()//Speaker
-};
-*/
-
 var speakers = {};
 var person = "";
+var totalSentences = 0;
+
+var svg;
+var width = parseInt(window.innerWidth)-100;
+var height = parseInt(window.innerHeight)-100;
+var mcolor = "#D4D6D4";
 
 d3.text("/source/text.txt",function(data){
 
@@ -49,7 +39,6 @@ d3.text("/source/text.txt",function(data){
 		
 		}else{
 
-
 			if(lChar == "." || lChar == "?" || lChar == ","){
 				if(transcript[i]!= "J." && transcript[i] != "Mr." ){
 					sentence.push(transcript[i].slice(0,-1));
@@ -63,6 +52,7 @@ d3.text("/source/text.txt",function(data){
 				if(transcript[i]!= "J." && transcript[i] != "Mr." ){
 					transcript[i] = transcript[i].slice(0,-1);
 					speakers[person].sentCount.push(sentence);
+					totalSentences++;
 					sentence = [];
 				}
 			}
@@ -80,14 +70,20 @@ d3.text("/source/text.txt",function(data){
 			}
 		}
 	}
+	console.log(totalSentences);
+	
+	//console.log(speakers);
 
+	svg = d3.select('#main').append('svg')
+	  .attr("width", width)
+	  .attr("height", height)
+	  .style("background-color",mcolor);
 
-	for(var i in speakers){
-		d3.select("#main")
-			.append('p')
-			.html(speakers[i].sentCount);
-	}
-	console.log(speakers);
+	 svg.append("rect")
+	 	.attr('x', 0)
+	 	.attr('y', 0)
+	 	.attr('width', 30)
+	 	.attr('height', 300);
 
 });
 
