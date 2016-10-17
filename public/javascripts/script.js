@@ -162,4 +162,12 @@ d3.text("/source/text.txt",function(data){
 
 });
 
+var sentiment = new Sentimood();
+
+var analyze = sentiment.positivity();
+
+//analyze("Hey you are bad");
+
+
+
 
