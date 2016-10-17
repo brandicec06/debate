@@ -11,6 +11,8 @@ var width = parseInt(window.innerWidth)-100;
 var height = parseInt(window.innerHeight)-100;
 var mcolor = "#D4D6D4";
 
+var svg2;
+
 d3.text("/source/text.txt",function(data){
 
 	transcript= data.toString().split(/\s/);
@@ -80,10 +82,10 @@ d3.text("/source/text.txt",function(data){
 	//console.log(speakers);
 	//Helper Function
 	
-	function sentenceDiv(n,bounds){
+	function remap(n,bounds, nbounds){
 		var scaleX = d3.scaleLinear()
       		.domain(bounds)
-      		.range([0,width]);
+      		.range(nbounds);
 
       	var x = scaleX(n);
 
@@ -99,7 +101,7 @@ d3.text("/source/text.txt",function(data){
 	 svg.selectAll("rect").data(lines)
 	 	.enter().append("rect")
 	 	.attr('x', function(d,i){
-	 		return sentenceDiv(i,[0,totalSentences]);
+	 		return remap(i,[0,totalSentences],[0,width]);
 	 	})
 	 	.attr('y', 0)
 	 	.attr('width', .25)
@@ -114,6 +116,49 @@ d3.text("/source/text.txt",function(data){
 	 			return "grey";
 	 		}
 	 	});
+
+	 svg2 = d3.select('#second').append('svg')
+	  .attr("width", width)
+	  .attr("height", height)
+	  .style("background-color",mcolor);
+
+	  circs = [1,2,3,4,5,6,7,8,9,10];
+
+
+	 var circles = svg2.selectAll('circles').data(circs);
+
+	 cenX = width/2;
+	 cenY = height/2;
+
+	 circles.enter()
+	 	.append('circle')
+	 	.attr('r', function(d,i){
+	 		if(i == circs.length-1){
+	 			return d*20;
+	 		}
+	 	})
+	 	.attr('cx', width/2)
+	 	.attr('cy', height/2)
+	 	.attr('fill','none')
+	 	.attr('stroke','black')
+	 	.attr('stroke-width', 3);
+
+
+	 circles.enter()
+	 	.append('circle')
+	 	.attr('r', function(d,i){
+	 		return d*10;
+	 	})
+	 	.attr('cx', function(d,i){
+	 		return cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
+	 	})
+	 	.attr('cy', function(d,i){
+	 		return cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
+	 	})
+	 	.attr('fill','none')
+	 	.attr('stroke','black')
+	 	.attr('stroke-width', 3);
+
 
 });
 
