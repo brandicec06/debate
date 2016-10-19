@@ -125,16 +125,18 @@ d3.text("/source/text.txt",function(data){
 	  circs = [1,2,3,4,5,6,7,8,9,10];
 
 
-	 var circles = svg2.selectAll('circles').data(circs);
+	 var circles = svg2.selectAll('g').data(circs)
+	 				.enter().append('g');
 
 	 cenX = width/2;
 	 cenY = height/2;
 
-	 circles.enter()
-	 	.append('circle')
+	 circles.append('circle')
 	 	.attr('r', function(d,i){
 	 		if(i == circs.length-1){
 	 			return d*20;
+	 		}else{
+	 			return 0;
 	 		}
 	 	})
 	 	.attr('cx', width/2)
@@ -143,9 +145,9 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('stroke','black')
 	 	.attr('stroke-width', 3);
 
+	 var cen = []
 
-	 circles.enter()
-	 	.append('circle')
+	 circles.append('circle')
 	 	.attr('r', function(d,i){
 	 		return d*10;
 	 	})
@@ -159,14 +161,26 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('stroke','black')
 	 	.attr('stroke-width', 3);
 
+	 var tx = 0;
+	 var ty =0;
+
+	 circles.append("text")
+	    .attr("dx", function(d,i){
+	    	tx = cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
+		 		return cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
+		 	})
+	    .attr("dy", function(d,i){
+	    	ty = cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
+		 		return cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
+		 	})
+	    .text(function (d) { return 'here'; })
+	    .attr("transform" , function(d,i){
+	    	return 'translate('+cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])))+','+cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])))+') rotate('+45+')';
+	    });
+
 
 });
 
-var sentiment = new Sentimood();
-
-var analyze = sentiment.positivity();
-
-//analyze("Hey you are bad");
 
 
 
