@@ -1,8 +1,7 @@
 var transcript;
-var wCount = new Array();//word count
-var sCount = new Array();//Speaker
 var speakers = {};
 var person = "";
+var wordSeq = [];
 var totalSentences = 0;
 var lines = [];
 
@@ -27,7 +26,7 @@ d3.text("/source/text.txt",function(data){
 			//console.log(transcript[i] + "  " + transcript[i].length)
 			person = transcript[i].slice(0,-1);
 			if(transcript[i] == "all:"){
-				console.log(lChar + transcript[i].length);
+				//console.log(lChar + transcript[i].length);
 			}
 			if(true == _.has(speakers, person)){
 				speakers[person].sCount[transcript[i]]++;
@@ -69,7 +68,10 @@ d3.text("/source/text.txt",function(data){
 				transcript[i] = transcript[i].slice(0,-1);
 			}
 			
-			//console.log(transcript[i].length);
+			wordSeq.push({
+				'p': person,
+				'w': transcript[i],
+			})
 			
 			if(true == _.has(speakers[person].wCount, transcript[i])){
 				speakers[person].wCount[transcript[i]]++;
@@ -78,7 +80,8 @@ d3.text("/source/text.txt",function(data){
 			}
 		}
 	}
-	console.log(lines.length);
+	//console.log(wordSeq.length);
+	//console.log(lines.length);
 	
 	//console.log(speakers);
 	//Helper Function
@@ -94,11 +97,22 @@ d3.text("/source/text.txt",function(data){
 	}
 
 	//Visualization
+
+	function zoomed() {
+	  var transform = d3.event.transform;
+	  circles.attr("transform", function(d) {
+	  	console.log(transform);
+	    return "translate(" + transform.applyX(d[0]) + "," + transform.applyY(d[0]) + ")";
+	  });
+	}
+
+
 	svg = d3.select('#main').append('svg')
 	  .attr("width", width)
 	  .attr("height", height)
 	  .style("background-color",mcolor);
-
+	  
+	 
 	 svg.selectAll("rect").data(lines)
 	 	.enter().append("rect")
 	 	.attr('x', function(d,i){
@@ -118,15 +132,24 @@ d3.text("/source/text.txt",function(data){
 	 		}
 	 	});
 
+	 
 	 svg2 = d3.select('#second').append('svg')
 	  .attr("width", width)
 	  .attr("height", height)
-	  .style("background-color",mcolor);
+	  .style("background-color",mcolor)
+	  .style("pointer-events", "all")
+	  .call(d3.zoom()
+        .scaleExtent([1 / 2, 4])
+        .on("zoom", zoomed));
 
 
-
-	  circs = [1,2,3,4,5,6,7,8,9,10];
-
+	 //circs = [1,2,3,4,5,6,7,8,9,10];
+	 circs = [
+	 			[1,10],
+	 			[2,20],
+	 			[3,30],
+	 			[4,40]
+	 		];
 
 	 var circles = svg2.selectAll('g').data(circs)
 	 				.enter().append('g');
@@ -135,9 +158,10 @@ d3.text("/source/text.txt",function(data){
 	 cenY = height/2;
 
 	 circles.append('circle')
+	 	.attr("transform", function(d) { return "translate(" + d[0] + "," + d[1] + ")"; })
 	 	.attr('r', function(d,i){
 	 		if(i == circs.length-1){
-	 			return d*20;
+	 			return d[0]*20;
 	 		}else{
 	 			return 0;
 	 		}
@@ -152,7 +176,7 @@ d3.text("/source/text.txt",function(data){
 
 	 circles.append('circle')
 	 	.attr('r', function(d,i){
-	 		return d*10;
+	 		return d[0]*10;
 	 	})
 	 	.attr('cx', function(d,i){
 
@@ -180,6 +204,12 @@ d3.text("/source/text.txt",function(data){
 	 	var x1 =  cenX + (200*Math.sin(remap(i+1,[0,circs.length],[0,Math.PI*2])));
 	 	var y2 =  cenY - (200*Math.cos(remap(i+1,[0,circs.length],[0,Math.PI*2])));
 
+	 
+
+	 	if(x < x1 && y < y1)
+
+
+
 	 	pts.push([{'x':x,'y':y},
 	 			{'x':cenX,'y':cenY},
 	 			{'x':x1,'y':y2}]);
@@ -189,10 +219,10 @@ d3.text("/source/text.txt",function(data){
 	function ranNum(min, max) {
     	return Math.random() * (max - min) + min;
 	}
-	console.log(pts);
+	console.log(pts[1][1]);
 
 	 var lf = d3.line()
-	 		   .curve(d3.curveBasisClosed)//BasisOpen)
+	 		   .curve(d3.curveBasis)//BasisOpen)
 	           .x(function(d) { 
 	           		return (d.x); 
 	           })
@@ -215,13 +245,58 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('fill','none')
 	    .attr("d", lf);
 
-	 /*var l = svg3.append('path')
-	 		.attr('d',function(d,i){
-	 			return lf(pts[i]);
-	 		})
-	 		.attr('stroke','blue')
-	 		.attr('stroke-width', 2)
-	 		.attr('fill','none');*/
+
+
+/*
+	 circs = [
+	 			[1,10],
+	 			[2,20],
+	 			[3,30],
+	 			[4,40]
+	 		];
+
+var points = circs;
+
+
+var circ = svg3.selectAll("circle")
+    .data(points)
+  .enter().append("circle")
+    //.attr("transform", function(d) { return "translate(" + d[0].x + "," + d[1].y + ")"; })
+    .attr("r", 2.5);
+
+ var l = svg3.append('path')
+ 		.attr('d',function(d,i){
+ 			return lf(pts[i]);
+ 		})
+ 		 //		.data(pts)
+ 		.attr('stroke','blue')
+ 		.attr('stroke-width', 2)
+ 		.attr('fill','none')
+ 		//.attr("transform", function(d) { console.log(d); return "translate(" +0 + "," + 0 + ")"; })
+;
+
+*/
+/*svg3.append("rect")
+    .attr("width", width)
+    .attr("height", height)
+    .style("fill", "none")
+    .style("pointer-events", "all")
+    .call(d3.zoom()
+        .scaleExtent([1 / 2, 4])
+        .on("zoom", zoomed));*/
+
+function zoomed() {
+  var transform = d3.event.transform;
+  circ.attr("transform", function(d) {
+    return "translate(" + transform.applyX(d[0]) + "," + transform.applyY(d[1]) + ")";
+  });
+
+  l.attr("transform", function(d) {
+    return "translate(" + transform.applyX(d[0].x) + "," + transform.applyY(d[1].y) + ")";
+  });
+}
+
+
 
 
 	/* var tx = 0;
