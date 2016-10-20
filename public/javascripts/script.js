@@ -145,13 +145,14 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('stroke','black')
 	 	.attr('stroke-width', 3);
 
-	 var cen = []
+	 var pts = []
 
 	 circles.append('circle')
 	 	.attr('r', function(d,i){
 	 		return d*10;
 	 	})
 	 	.attr('cx', function(d,i){
+
 	 		return cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
 	 	})
 	 	.attr('cy', function(d,i){
@@ -161,22 +162,29 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('stroke','black')
 	 	.attr('stroke-width', 3);
 
-	 var tx = 0;
+	 var lines = svg2.selectAll('g').data('circs')
+	 				.enter().append('g');
+
+	 lines.append('line')
+	 	.
+	/* var tx = 0;
 	 var ty =0;
 
-	 circles.append("text")
+	circles.append("text")
 	    .attr("dx", function(d,i){
-	    	tx = cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
 		 		return cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
 		 	})
 	    .attr("dy", function(d,i){
-	    	ty = cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
 		 		return cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
 		 	})
 	    .text(function (d) { return 'here'; })
 	    .attr("transform" , function(d,i){
-	    	return 'translate('+cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])))+','+cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])))+') rotate('+45+')';
-	    });
+	    	tx = cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
+	    	ty = cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
+
+
+	    	return "rotate(25"+tx+ty+")";
+	    });*/
 
 
 });
