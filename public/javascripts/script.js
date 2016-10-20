@@ -4,7 +4,7 @@ var sCount = new Array();//Speaker
 var speakers = {};
 var person = "";
 var totalSentences = 0;
-var lines = []
+var lines = [];
 
 var svg;
 var width = parseInt(window.innerWidth)-100;
@@ -12,6 +12,7 @@ var height = parseInt(window.innerHeight)-100;
 var mcolor = "#D4D6D4";
 
 var svg2;
+var svg3;
 
 d3.text("/source/text.txt",function(data){
 
@@ -122,6 +123,8 @@ d3.text("/source/text.txt",function(data){
 	  .attr("height", height)
 	  .style("background-color",mcolor);
 
+
+
 	  circs = [1,2,3,4,5,6,7,8,9,10];
 
 
@@ -145,7 +148,7 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('stroke','black')
 	 	.attr('stroke-width', 3);
 
-	 var pts = []
+
 
 	 circles.append('circle')
 	 	.attr('r', function(d,i){
@@ -162,11 +165,65 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('stroke','black')
 	 	.attr('stroke-width', 3);
 
-	 var lines = svg2.selectAll('g').data('circs')
-	 				.enter().append('g');
 
-	 lines.append('line')
-	 	.
+	 var circs = [];
+	 for (var i = 0; i < 100; i+=50) {
+	  	circs[i] = i;
+	  }
+
+	 var pts = [];
+
+	 for(var i =0; i<circs.length; i++){
+	 	var x =  cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
+	 	var y =  cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
+
+	 	var x1 =  cenX + (200*Math.sin(remap(i+1,[0,circs.length],[0,Math.PI*2])));
+	 	var y2 =  cenY - (200*Math.cos(remap(i+1,[0,circs.length],[0,Math.PI*2])));
+
+	 	pts.push([{'x':x,'y':y},
+	 			{'x':cenX,'y':cenY},
+	 			{'x':x1,'y':y2}]);
+
+	 }
+
+	function ranNum(min, max) {
+    	return Math.random() * (max - min) + min;
+	}
+	console.log(pts);
+
+	 var lf = d3.line()
+	 		   .curve(d3.curveBasisClosed)//BasisOpen)
+	           .x(function(d) { 
+	           		return (d.x); 
+	           })
+	           .y(function(d) { 
+	           		return (d.y); 
+	           }); 
+
+
+	 svg3 = d3.select('#third').append('svg')
+	  .attr("width", width)
+	  .attr("height", height)
+	  .style("background-color",mcolor);
+
+
+	svg3.selectAll("line")
+	    .data(pts)
+	  	.enter().append("path")
+	    .attr('stroke','blue')
+	 	.attr('stroke-width', 2)
+	 	.attr('fill','none')
+	    .attr("d", lf);
+
+	 /*var l = svg3.append('path')
+	 		.attr('d',function(d,i){
+	 			return lf(pts[i]);
+	 		})
+	 		.attr('stroke','blue')
+	 		.attr('stroke-width', 2)
+	 		.attr('fill','none');*/
+
+
 	/* var tx = 0;
 	 var ty =0;
 
