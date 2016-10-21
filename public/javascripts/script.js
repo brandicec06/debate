@@ -12,6 +12,7 @@ var mcolor = "#D4D6D4";
 
 var svg2;
 var svg3;
+var svg4,svg5;
 
 d3.text("/source/text.txt",function(data){
 
@@ -31,11 +32,13 @@ d3.text("/source/text.txt",function(data){
 			if(true == _.has(speakers, person)){
 				speakers[person].sCount[transcript[i]]++;
 			}else{
-				speakers[person] ={
+					speakers[person] ={
 					'name': person,
 					'wCount' : new Array(),//word count
 					'sCount' : new Array(),//# of times spoken
-					'sentCount' : new Array()//Speaker sentences
+					'sentCount' : new Array(),//Speaker sentence count
+					'sentences' : []
+
 				}
 				speakers[person].sCount[transcript[i]] = 1;
 			}
@@ -54,7 +57,11 @@ d3.text("/source/text.txt",function(data){
 				//console.log(transcript[i].length + "  " + transcript[i]);
 				if(transcript[i]!= "J." && transcript[i] != "Mr." ){
 					transcript[i] = transcript[i].slice(0,-1);
+					sentence = sentence.join(' ');
 					speakers[person].sentCount.push(sentence);
+
+					speakers[person].sentences.push(sentence);
+
 					lines.push({
 						'p': person,
 						's': sentence
@@ -63,6 +70,7 @@ d3.text("/source/text.txt",function(data){
 					sentence = [];
 				}
 			}
+
 
 			if(lChar == ","){
 				transcript[i] = transcript[i].slice(0,-1);
@@ -80,11 +88,6 @@ d3.text("/source/text.txt",function(data){
 			}
 		}
 	}
-	//console.log(wordSeq.length);
-	//console.log(lines.length);
-	
-	//console.log(speakers);
-	//Helper Function
 	
 	function remap(n,bounds, nbounds){
 		var scaleX = d3.scaleLinear()
@@ -98,13 +101,13 @@ d3.text("/source/text.txt",function(data){
 
 	//Visualization
 
-	function zoomed() {
+	/*function zoomed() {
 	  var transform = d3.event.transform;
 	  circles.attr("transform", function(d) {
 	  	console.log(transform);
 	    return "translate(" + transform.applyX(d[0]) + "," + transform.applyY(d[0]) + ")";
 	  });
-	}
+	}*/
 
 
 	svg = d3.select('#main').append('svg')
@@ -138,9 +141,9 @@ d3.text("/source/text.txt",function(data){
 	  .attr("height", height)
 	  .style("background-color",mcolor)
 	  .style("pointer-events", "all")
-	  .call(d3.zoom()
+	  /*.call(d3.zoom()
         .scaleExtent([1 / 2, 4])
-        .on("zoom", zoomed));
+        .on("zoom", zoomed));*/
 
 
 	 //circs = [1,2,3,4,5,6,7,8,9,10];
@@ -158,7 +161,7 @@ d3.text("/source/text.txt",function(data){
 	 cenY = height/2;
 
 	 circles.append('circle')
-	 	.attr("transform", function(d) { return "translate(" + d[0] + "," + d[1] + ")"; })
+	 	//.attr("transform", function(d) { return "translate(" + d[0] + "," + d[1] + ")"; })
 	 	.attr('r', function(d,i){
 	 		if(i == circs.length-1){
 	 			return d[0]*20;
@@ -204,11 +207,6 @@ d3.text("/source/text.txt",function(data){
 	 	var x1 =  cenX + (200*Math.sin(remap(i+1,[0,circs.length],[0,Math.PI*2])));
 	 	var y2 =  cenY - (200*Math.cos(remap(i+1,[0,circs.length],[0,Math.PI*2])));
 
-	 
-
-	 	if(x < x1 && y < y1)
-
-
 
 	 	pts.push([{'x':x,'y':y},
 	 			{'x':cenX,'y':cenY},
@@ -219,7 +217,7 @@ d3.text("/source/text.txt",function(data){
 	function ranNum(min, max) {
     	return Math.random() * (max - min) + min;
 	}
-	console.log(pts[1][1]);
+	//console.log(pts[1][1]);
 
 	 var lf = d3.line()
 	 		   .curve(d3.curveBasis)//BasisOpen)
@@ -244,6 +242,95 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('stroke-width', 2)
 	 	.attr('fill','none')
 	    .attr("d", lf);
+
+
+	    ///////Sentiment graphs
+
+
+	// console.log(compendium.analyse(lines[1].s)[0].profile.sentiment);
+	//console.log(lines)
+
+
+	 var sWidth = $("#sentiment").width() - 300
+	 var sHeight = parseInt(window.innerHeight)/2;
+	 var topPts = [];
+	 var botPts = [];
+	 		
+	 var TsLength = speakers.TRUMP.sentences.length;
+
+	 for( var l=0; l<TsLength; l++){
+	 	try{
+			var sen = compendium.analyse(speakers.TRUMP.sentences[l])[0].profile.sentiment;
+	 		var x = remap(l, [0,TsLength], [0,sWidth]);
+
+	 		var y = remap(sen, [-2,2],[300,0]);
+	 		topPts.push(
+	 		{
+	 			'x':x,
+	 			'y':y
+	 		});
+
+	 	}catch(err){
+	 		continue;
+	 	}
+	 } 
+/*
+	 for( var l in speakers.CLINTON.sentences) {
+	 	try{
+	 		var sen = compendium.analyse(speakers.CLINTON.sentences[l]);
+	 		console.log();
+	 		var x = remap(l, [0,speakers.CLINTON.sentences[l].length], [0,sWidth]);
+	 		var y = remap(sen, [-3,3],[0,300]);
+
+	 		topPts.push(
+	 		{
+	 			'x':x,
+	 			'y':y
+	 		});
+
+	 	}catch(err){
+	 		continue;
+	 	}
+	 } */
+
+
+	svg4 = d3.select('#gtop').append('svg')
+	  .attr("width", sWidth)
+	  .attr("height", sHeight)
+	  .style("background-color","gray");
+
+	 svg4.selectAll('circle').data(topPts)
+	 	.enter().append('circle')
+	 	.attr('r', 1)
+	 	.attr('cx',function(d){
+	 		return d.x;
+	 	})
+	 	.attr('cy',function(d){
+	 		return d.y
+	 	});
+
+	 svg4.append("path")
+	    .attr('stroke','red')
+	 	.attr('stroke-width', 2)
+	 	.attr('fill','none')
+	    .attr("d", lf(topPts));
+
+
+
+
+ 	/*svg4.selectAll('line')
+	 	.data(topPts)
+	 	.enter().append("path")
+	 	.attr('stroke','red')
+	 	.attr('stroke-width', 2)
+	 	.attr('fill','none')
+	    .attr("d", lf);*/
+
+
+	svg5 = d3.select('#gbot').append('svg')
+	  .attr("width", sWidth)
+	  .attr("height", sHeight)
+	  .style("background-color","none");
 
 
 
@@ -284,7 +371,7 @@ var circ = svg3.selectAll("circle")
     .call(d3.zoom()
         .scaleExtent([1 / 2, 4])
         .on("zoom", zoomed));*/
-
+/*
 function zoomed() {
   var transform = d3.event.transform;
   circ.attr("transform", function(d) {
@@ -294,7 +381,7 @@ function zoomed() {
   l.attr("transform", function(d) {
     return "translate(" + transform.applyX(d[0].x) + "," + transform.applyY(d[1].y) + ")";
   });
-}
+}*/
 
 
 

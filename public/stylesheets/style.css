@@ -1,5 +1,5 @@
 body {
-  padding: 50px;
+	width: 100%;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
@@ -8,5 +8,31 @@ a {
 }
 
 #main{
+	padding: 50px;
+	text-align: center;
+}
+
+#second{
+	padding: 50px;
+}
+
+#third{
+	  padding: 50px;
+}
+
+#sentiment{
+	background-color: none;
+	text-align: center;
+	display: inline-block;
+	width:100%;
+
+}
+
+#gtop{
+	border: solid 1px;
+	text-align: center;
+}
+#gbot{
+
 	text-align: center;
 }
