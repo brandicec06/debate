@@ -21,7 +21,7 @@ a {
 }
 
 #sentiment{
-	background-color: none;
+	background-color: #3B3D42;
 	text-align: center;
 	display: inline-block;
 	width:100%;
@@ -30,8 +30,21 @@ a {
 
 #gtop{
 	text-align: center;
+	overflow: visible;
+
 }
 #gbot{
-
 	text-align: center;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: none;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
 }

@@ -252,71 +252,74 @@ d3.text("/source/text.txt",function(data){
 
 
 	 var sWidth = $("#sentiment").width()-10;
-	 var sHeight = parseInt(window.innerHeight)/2;
+	 var sHeight = parseInt(window.innerHeight)*.5;
 	 var topPts = [];
 	 var botPts = [];
-	 		
-	 var TsLength = speakers.TRUMP.sentences.length;
 
-	 for( var l=0; l<TsLength; l++){
-	 	try{
-	 		
+	 function sentimentPoints(name, hBounds){
 
+	 	var pArr = [];
 
+	 	var tLength = name.sentences.length;
 
-			var sen = compendium.analyse(speakers.TRUMP.sentences[l])[0].profile.sentiment;
-	 		var x = remap(l, [0,TsLength], [0,sWidth]);
+		 for( var l=0; l<tLength; l++){
+		 	try{
 
-	 		var y = remap(sen, [-2,2],[sHeight,sHeight*.3]);
-	 		topPts.push(
-	 		{
-	 			'x':x,
-	 			'y':y
-	 		});
+		 		var sen = compendium.analyse(name.sentences[l])[0].profile.sentiment;
+		 		var x = remap(l, [0,tLength], [50,sWidth-50]);
+		 		if(name.name == "TRUMP"){
+		 			var y = remap(sen, [-3,3],hBounds);
+		 		}else{
+		 			var y = remap(sen, [-3,3],hBounds);
+		 		}
+		 		pArr.push(
+		 		{
+		 			'x':x,
+		 			'y':y
+		 		});
 
-	 		if(l==TsLength -1){
-	 			topPts.push[{
-	 				'x': sWidth,
-	 				'y': sHeight
-	 			}];
-	 		}
+		 		/*if(l == tLength-1){
+		 			if(name.name =="TRUMP"){
+						 pArr.push({
+								'x':x,
+								'y':sHeight
+						 });
+					}else{
+						 pArr.push({
+								'x':x,
+								'y':0
+						 });
+					}
+				}
+				if(l == 0){
+		 			if(name.name =="TRUMP"){
+						 pArr.push({
+								'x':x,
+								'y':sHeight
+						 });
+					}else{
+						 pArr.push({
+								'x':x,
+								'y':0
+						 });
+					}
+				}*/
 
-	 	}catch(err){
-	 		continue;
-	 	}
-	 } 
+		 	}catch(err){
+		 		continue;
+		 	}
+		 } 
 
+		 return pArr;
 
-	 topPts.unshift({
-			'x':0,
-			'y':sHeight
-	 });
+	 }
 
-	 topPts.push({
-			'x':sWidth,
-			'y':sHeight
-	 });
+	 trumpRange = [sHeight,sHeight*.2];
+	 clintonRange = [0,sHeight*.8];
+	 sentRange = [1,5];
 
-
-/*
-	 for( var l in speakers.CLINTON.sentences) {
-	 	try{
-	 		var sen = compendium.analyse(speakers.CLINTON.sentences[l]);
-	 		console.log();
-	 		var x = remap(l, [0,speakers.CLINTON.sentences[l].length], [0,sWidth]);
-	 		var y = remap(sen, [-3,3],[0,300]);
-
-	 		topPts.push(
-	 		{
-	 			'x':x,
-	 			'y':y
-	 		});
-
-	 	}catch(err){
-	 		continue;
-	 	}
-	 } */
-
+	 topPts = sentimentPoints(speakers.TRUMP,trumpRange);
+	 botPts = sentimentPoints(speakers.CLINTON,clintonRange);
 
 	 var lfunc = d3.line()
 		   .curve(d3.curveLinear)//BasisOpen)
@@ -331,25 +334,26 @@ d3.text("/source/text.txt",function(data){
 	svg4 = d3.select('#gtop').append('svg')
 	  .attr("width", sWidth)
 	  .attr("height", sHeight)
-	  .style("background-color","gray");
+	  .attr('display','block')
+	  .style("background-color","none");
 
+	  /////Circle @ veritces
 	 svg4.selectAll('circle').data(topPts)
 	 	.enter().append('circle')
-	 	.attr('r', 10)
+	 	.attr('r', 2)
 	 	.attr('cx',function(d){
 	 		return 0;
 	 	})
 	 	.attr('cy',function(d){
 	 		return sHeight
-	 	});
+	 	})
+	 	.attr('fill','');
 
 	 svg4.append("path")
-	    .attr('stroke','red')
+	    .attr('stroke','#D33E43')
 	 	.attr('stroke-width', 2)
-	 	.attr('fill','blue')
+	 	.attr('fill','none')
 	    .attr("d", lfunc(topPts));
-
-
 
 
  	/*svg4.selectAll('line')
@@ -364,8 +368,43 @@ d3.text("/source/text.txt",function(data){
 	svg5 = d3.select('#gbot').append('svg')
 	  .attr("width", sWidth)
 	  .attr("height", sHeight)
+	  .attr('display','block')
 	  .style("background-color","none");
 
+  	svg5.append("path")
+	    .attr('stroke','#3E78B2')
+	 	.attr('stroke-width', 2)
+	 	.attr('fill','none')
+	    .attr("d", lfunc(botPts));
+
+
+
+    //Define Y axis
+
+
+	 //Define Y scale
+	 var yScale = d3.scaleLinear()
+                .domain(sentRange)
+                .range(trumpRange);
+
+	//Create Y axis
+	svg4.append("g")
+	.attr("class", ".axis")
+	.attr("transform", "translate(" + 30 + ",0)")
+	.call(d3.axisLeft(yScale)
+	    .ticks(5)
+	    .tickSize(-sWidth));
+
+	 var yScale2 = d3.scaleLinear()
+	        .domain(sentRange)
+	        .range(clintonRange);
+
+		//Create Y axis
+		svg5.append("g")
+		.attr("class", ".axis")
+		.attr("transform", "translate(" + 30 + ",0)")
+		.call(d3.axisLeft(yScale2)
+		    .ticks(5));
 
 
 /*
