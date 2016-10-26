@@ -251,7 +251,7 @@ d3.text("/source/text.txt",function(data){
 	//console.log(lines)
 
 
-	 var sWidth = $("#sentiment").width() - 300
+	 var sWidth = $("#sentiment").width()-10;
 	 var sHeight = parseInt(window.innerHeight)/2;
 	 var topPts = [];
 	 var botPts = [];
@@ -260,20 +260,44 @@ d3.text("/source/text.txt",function(data){
 
 	 for( var l=0; l<TsLength; l++){
 	 	try{
+	 		
+
+
+
 			var sen = compendium.analyse(speakers.TRUMP.sentences[l])[0].profile.sentiment;
 	 		var x = remap(l, [0,TsLength], [0,sWidth]);
 
-	 		var y = remap(sen, [-2,2],[300,0]);
+	 		var y = remap(sen, [-2,2],[sHeight,sHeight*.3]);
 	 		topPts.push(
 	 		{
 	 			'x':x,
 	 			'y':y
 	 		});
 
+	 		if(l==TsLength -1){
+	 			topPts.push[{
+	 				'x': sWidth,
+	 				'y': sHeight
+	 			}];
+	 		}
+
 	 	}catch(err){
 	 		continue;
 	 	}
 	 } 
+
+
+	 topPts.unshift({
+			'x':0,
+			'y':sHeight
+	 });
+
+	 topPts.push({
+			'x':sWidth,
+			'y':sHeight
+	 });
+
+
 /*
 	 for( var l in speakers.CLINTON.sentences) {
 	 	try{
@@ -294,6 +318,16 @@ d3.text("/source/text.txt",function(data){
 	 } */
 
 
+	 var lfunc = d3.line()
+		   .curve(d3.curveLinear)//BasisOpen)
+       .x(function(d) { 
+       		return (d.x); 
+       })
+       .y(function(d) { 
+       		return (d.y); 
+       }); 
+
+
 	svg4 = d3.select('#gtop').append('svg')
 	  .attr("width", sWidth)
 	  .attr("height", sHeight)
@@ -301,19 +335,19 @@ d3.text("/source/text.txt",function(data){
 
 	 svg4.selectAll('circle').data(topPts)
 	 	.enter().append('circle')
-	 	.attr('r', 1)
+	 	.attr('r', 10)
 	 	.attr('cx',function(d){
-	 		return d.x;
+	 		return 0;
 	 	})
 	 	.attr('cy',function(d){
-	 		return d.y
+	 		return sHeight
 	 	});
 
 	 svg4.append("path")
 	    .attr('stroke','red')
 	 	.attr('stroke-width', 2)
-	 	.attr('fill','none')
-	    .attr("d", lf(topPts));
+	 	.attr('fill','blue')
+	    .attr("d", lfunc(topPts));
 
 
 
