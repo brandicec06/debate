@@ -315,11 +315,15 @@ d3.text("/source/text.txt",function(data){
 	 }
 
 	 trumpRange = [sHeight,sHeight*.2];
-	 clintonRange = [0,sHeight*.8];
-	 sentRange = [1,5];
+	 clintonRange = [sHeight,sHeight*.2];
+	 sentRange = [1.5,5];
 
 	 topPts = sentimentPoints(speakers.TRUMP,trumpRange);
 	 botPts = sentimentPoints(speakers.CLINTON,clintonRange);
+
+
+	 //Y Axis Adjustment
+	 yAdj = -20;
 
 	 var lfunc = d3.line()
 		   .curve(d3.curveLinear)//BasisOpen)
@@ -327,8 +331,9 @@ d3.text("/source/text.txt",function(data){
        		return (d.x); 
        })
        .y(function(d) { 
-       		return (d.y); 
+       		return (d.y+yAdj); 
        }); 
+
 
 
 	svg4 = d3.select('#gtop').append('svg')
@@ -336,6 +341,7 @@ d3.text("/source/text.txt",function(data){
 	  .attr("height", sHeight)
 	  .attr('display','block')
 	  .style("background-color","none");
+
 
 	  /////Circle @ veritces
 	 svg4.selectAll('circle').data(topPts)
@@ -349,20 +355,43 @@ d3.text("/source/text.txt",function(data){
 	 	})
 	 	.attr('fill','');
 
+
+
+	 //Define Y axis
+
+
+	 //Define Y scale
+	 var yScale = d3.scaleLinear()
+                .domain(sentRange)
+                .range(trumpRange);
+
+	//Create Y axis
+	svg4.append("g")
+	.attr("stroke", "#66686C")
+	.attr("transform", "translate(" + 30 + "," + yAdj+")")
+	.call(d3.axisLeft(yScale)
+		.ticks(10)
+		.tickSize(-sWidth));
+
+
+  	svg4.selectAll('g').selectAll('path')
+	.styles({
+		stroke: 'none'
+	});
+
+  	svg4.selectAll('g').selectAll('line')
+	.styles({
+		stroke: '#66686C'
+	});
+
+	d3.select('.sentiment')
+		.style('overflow','visible')
+
 	 svg4.append("path")
-	    .attr('stroke','#D33E43')
-	 	.attr('stroke-width', 2)
-	 	.attr('fill','none')
-	    .attr("d", lfunc(topPts));
-
-
- 	/*svg4.selectAll('line')
-	 	.data(topPts)
-	 	.enter().append("path")
-	 	.attr('stroke','red')
-	 	.attr('stroke-width', 2)
-	 	.attr('fill','none')
-	    .attr("d", lf);*/
+    .attr('stroke','#D33E43')
+ 	.attr('stroke-width', 2)
+ 	.attr('fill','none')
+    .attr("d", lfunc(topPts));
 
 
 	svg5 = d3.select('#gbot').append('svg')
@@ -375,36 +404,24 @@ d3.text("/source/text.txt",function(data){
 	    .attr('stroke','#3E78B2')
 	 	.attr('stroke-width', 2)
 	 	.attr('fill','none')
-	    .attr("d", lfunc(botPts));
+	    .attr("d", lfunc(botPts, yAdj));
 
-
-
-    //Define Y axis
-
-
-	 //Define Y scale
-	 var yScale = d3.scaleLinear()
-                .domain(sentRange)
-                .range(trumpRange);
-
-	//Create Y axis
-	svg4.append("g")
-	.attr("class", ".axis")
-	.attr("transform", "translate(" + 30 + ",0)")
-	.call(d3.axisLeft(yScale)
-	    .ticks(5)
-	    .tickSize(-sWidth));
 
 	 var yScale2 = d3.scaleLinear()
 	        .domain(sentRange)
 	        .range(clintonRange);
 
-		//Create Y axis
-		svg5.append("g")
-		.attr("class", ".axis")
-		.attr("transform", "translate(" + 30 + ",0)")
-		.call(d3.axisLeft(yScale2)
-		    .ticks(5));
+
+
+
+	//Create Y axis
+	svg5.append("g")
+	.attr("class", ".axis ")
+	.attr("transform", "translate(" + 30 + ",0)")
+	.call(d3.axisLeft(yScale2)
+	    .ticks(5));
+
+
 
 
 /*

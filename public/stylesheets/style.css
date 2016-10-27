@@ -37,10 +37,22 @@ a {
 	text-align: center;
 }
 
+.axisY tick{
+	stroke: red;
+}
+.axisY path{
+	 stroke: red;
+}
+.axisY line{
+	    stroke: red;
+}
+
+
+
 .axis path,
-.axis line {
+.axis line, {
     fill: none;
-    stroke: none;
+    stroke-width: 5px;
     shape-rendering: crispEdges;
 }
 
@@ -48,3 +60,5 @@ a {
     font-family: sans-serif;
     font-size: 11px;
 }
+
+
