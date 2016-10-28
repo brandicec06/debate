@@ -256,6 +256,8 @@ d3.text("/source/text.txt",function(data){
 	 var topPts = [];
 	 var botPts = [];
 
+	 var gBound = [50,sWidth-50];
+
 	 function sentimentPoints(name, hBounds){
 
 	 	var pArr = [];
@@ -266,7 +268,7 @@ d3.text("/source/text.txt",function(data){
 		 	try{
 
 		 		var sen = compendium.analyse(name.sentences[l])[0].profile.sentiment;
-		 		var x = remap(l, [0,tLength], [50,sWidth-50]);
+		 		var x = remap(l, [0,tLength], gBound);
 		 		if(name.name == "TRUMP"){
 		 			var y = remap(sen, [-3,3],hBounds);
 		 		}else{
@@ -316,7 +318,7 @@ d3.text("/source/text.txt",function(data){
 
 	 trumpRange = [sHeight,sHeight*.2];
 	 clintonRange = [sHeight,sHeight*.2];
-	 sentRange = [1.5,5];
+	 sentRange = [1,5];
 
 	 topPts = sentimentPoints(speakers.TRUMP,trumpRange);
 	 botPts = sentimentPoints(speakers.CLINTON,clintonRange);
@@ -358,7 +360,23 @@ d3.text("/source/text.txt",function(data){
 
 
 	 //Define Y axis
+ 	 var xScale = d3.scaleLinear()
+            .domain([0,1])
+            .range([0,sWidth-50]);
 
+     svg4.append('g')
+     	.attr("stroke", "#66686C")
+     	.attr("transform", "translate(" + 0 + "," + (-yAdj*2.9) +")")
+     	.call(d3.axisBottom(xScale)
+		.ticks(25)
+		.tickSize([sHeight-75])
+		.tickFormat(""));
+
+     svg4.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate("+ (25) +","+(sHeight/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+            .attr("fill", "#66686C")
+            .text("Value");
 
 	 //Define Y scale
 	 var yScale = d3.scaleLinear()
@@ -368,10 +386,11 @@ d3.text("/source/text.txt",function(data){
 	//Create Y axis
 	svg4.append("g")
 	.attr("stroke", "#66686C")
-	.attr("transform", "translate(" + 30 + "," + yAdj+")")
+	.attr("transform", "translate(" + 45 + "," + yAdj+")")
 	.call(d3.axisLeft(yScale)
-		.ticks(10)
-		.tickSize(-sWidth));
+		.ticks(5)
+		.tickSize(-sWidth)
+		.tickFormat(d3.format(".0s")));
 
 
   	svg4.selectAll('g').selectAll('path')
