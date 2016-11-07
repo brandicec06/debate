@@ -243,10 +243,33 @@ d3.text("/source/text.txt",function(data){
 	 	.attr('fill','none')
 	    .attr("d", lf);
 
+	twKeys = Object.keys(speakers["TRUMP"].wCount);
+	cwKeys = Object.keys(speakers["CLINTON"].wCount);
+	var tfCount = [];
+	var cfCount = [];
+	
+	for(var i =0; i < twKeys.length; i++){
+		tfCount.push(
+			{
+				'word': twKeys[i],
+				'count': speakers['TRUMP'].wCount[twKeys[i]]
+			}
+		)
+	}
+	for(var i =0; i < cwKeys.length; i++){
+		cfCount.push(
+			{
+				'word': cwKeys[i],
+				'count': speakers['CLINTON'].wCount[cwKeys[i]]
+			}
+		)
+	}
+	var allWcount = tfCount.concat(cfCount);
+	console.log(_.sortBy(allWcount, 'count'));
 
-	    ///////Sentiment graphs
 
 
+	///////Sentiment graphs
 	// console.log(compendium.analyse(lines[1].s)[0].profile.sentiment);
 	//console.log(lines)
 
@@ -439,81 +462,6 @@ d3.text("/source/text.txt",function(data){
 	.attr("transform", "translate(" + 30 + ",0)")
 	.call(d3.axisLeft(yScale2)
 	    .ticks(5));
-
-
-
-
-/*
-	 circs = [
-	 			[1,10],
-	 			[2,20],
-	 			[3,30],
-	 			[4,40]
-	 		];
-
-var points = circs;
-
-
-var circ = svg3.selectAll("circle")
-    .data(points)
-  .enter().append("circle")
-    //.attr("transform", function(d) { return "translate(" + d[0].x + "," + d[1].y + ")"; })
-    .attr("r", 2.5);
-
- var l = svg3.append('path')
- 		.attr('d',function(d,i){
- 			return lf(pts[i]);
- 		})
- 		 //		.data(pts)
- 		.attr('stroke','blue')
- 		.attr('stroke-width', 2)
- 		.attr('fill','none')
- 		//.attr("transform", function(d) { console.log(d); return "translate(" +0 + "," + 0 + ")"; })
-;
-
-*/
-/*svg3.append("rect")
-    .attr("width", width)
-    .attr("height", height)
-    .style("fill", "none")
-    .style("pointer-events", "all")
-    .call(d3.zoom()
-        .scaleExtent([1 / 2, 4])
-        .on("zoom", zoomed));*/
-/*
-function zoomed() {
-  var transform = d3.event.transform;
-  circ.attr("transform", function(d) {
-    return "translate(" + transform.applyX(d[0]) + "," + transform.applyY(d[1]) + ")";
-  });
-
-  l.attr("transform", function(d) {
-    return "translate(" + transform.applyX(d[0].x) + "," + transform.applyY(d[1].y) + ")";
-  });
-}*/
-
-
-
-
-	/* var tx = 0;
-	 var ty =0;
-
-	circles.append("text")
-	    .attr("dx", function(d,i){
-		 		return cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
-		 	})
-	    .attr("dy", function(d,i){
-		 		return cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
-		 	})
-	    .text(function (d) { return 'here'; })
-	    .attr("transform" , function(d,i){
-	    	tx = cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
-	    	ty = cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
-
-
-	    	return "rotate(25"+tx+ty+")";
-	    });*/
-
 
 });
 
