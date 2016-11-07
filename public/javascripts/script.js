@@ -265,7 +265,20 @@ d3.text("/source/text.txt",function(data){
 		)
 	}
 	var allWcount = tfCount.concat(cfCount);
-	console.log(_.sortBy(allWcount, 'count'));
+	allWcount = _.sortBy(allWcount, 'count').reverse();
+	var editCount = []
+	for(var i =0; i< allWcount.length; i++){
+		try{
+			var pos = compendium.analyse(allWcount[i].word)[0].root.tags[0];
+		}catch(err){
+			pos = 'C';
+		}
+		if(pos == 'NNS' || pos == 'NN' || pos == 'VB' || pos == 'JJ' || pos == 'RB'){
+			editCount.push(allWcount[i]);
+		}
+	}
+	console.log(editCount);
+	//console.log(compendium.analyse('we')[0].root.tags[0]);
 
 
 
