@@ -6,8 +6,8 @@ var totalSentences = 0;
 var lines = [];
 
 var svg;
-var width = parseInt(window.innerWidth)-100;
-var height = parseInt(window.innerHeight)-100;
+var width = $(window).width();
+var height = $(window).height();
 var mcolor = "#D4D6D4";
 
 var svg2;
@@ -88,6 +88,59 @@ d3.text("/source/text.txt",function(data){
 			}
 		}
 	}
+
+	//Word processing for circle graph
+
+	twKeys = Object.keys(speakers["TRUMP"].wCount);
+	cwKeys = Object.keys(speakers["CLINTON"].wCount);
+	var tfCount = [];
+	var cfCount = [];
+	
+	for(var i =0; i < twKeys.length; i++){
+		tfCount.push(
+			{
+				'word': twKeys[i],
+				'count': speakers['TRUMP'].wCount[twKeys[i]],
+				'person': 't'
+			}
+		)
+	}
+	for(var i =0; i < cwKeys.length; i++){
+		cfCount.push(
+			{
+				'word': cwKeys[i],
+				'count': speakers['CLINTON'].wCount[cwKeys[i]],
+				'person':'c'
+			}
+		)
+	}
+
+	var allWcount = tfCount.concat(cfCount);
+	//allWcount = _.sortBy(allWcount, 'count').reverse();
+	var editCount = []
+
+	for(var i =0; i< allWcount.length; i++){
+		var pos ='';
+		var sent = 0;
+
+		try{
+		    pos = compendium.analyse(allWcount[i].word)[0].root.tags[0];
+		}catch(err){
+			pos = 'C';
+		}
+
+		try{
+			sent = compendium.analyse(cwKeys[i])[0].profile.sentiment;
+		}catch(err){
+			sent = 10;
+		}
+
+		if(sent != 0){
+			allWcount[i]['pos'] = pos; 
+			allWcount[i]['sent'] = sent
+			editCount.push(allWcount[i]);
+		}
+	}
 	
 	function remap(n,bounds, nbounds){
 		var scaleX = d3.scaleLinear()
@@ -101,14 +154,7 @@ d3.text("/source/text.txt",function(data){
 
 	//Visualization
 
-	/*function zoomed() {
-	  var transform = d3.event.transform;
-	  circles.attr("transform", function(d) {
-	  	console.log(transform);
-	    return "translate(" + transform.applyX(d[0]) + "," + transform.applyY(d[0]) + ")";
-	  });
-	}*/
-
+/////////////////////////// Radial Graph ////////////////////////////////////
 
 	svg = d3.select('#main').append('svg')
 	  .attr("width", width)
@@ -135,92 +181,104 @@ d3.text("/source/text.txt",function(data){
 	 		}
 	 	});
 
-	 
-	 svg2 = d3.select('#second').append('svg')
-	  .attr("width", width)
-	  .attr("height", height)
-	  .style("background-color",mcolor)
-	  .style("pointer-events", "all")
-	  /*.call(d3.zoom()
-        .scaleExtent([1 / 2, 4])
-        .on("zoom", zoomed));*/
-
-
-	 //circs = [1,2,3,4,5,6,7,8,9,10];
-	 circs = [
-	 			[1,10],
-	 			[2,20],
-	 			[3,30],
-	 			[4,40]
-	 		];
-
-	 var circles = svg2.selectAll('g').data(circs)
-	 				.enter().append('g');
+	
 
 	 cenX = width/2;
-	 cenY = height/2;
+	 cenY = height*.7;
 
-	 circles.append('circle')
-	 	//.attr("transform", function(d) { return "translate(" + d[0] + "," + d[1] + ")"; })
-	 	.attr('r', function(d,i){
-	 		if(i == circs.length-1){
-	 			return d[0]*20;
-	 		}else{
-	 			return 0;
-	 		}
-	 	})
-	 	.attr('cx', width/2)
-	 	.attr('cy', height/2)
-	 	.attr('fill','none')
-	 	.attr('stroke','black')
-	 	.attr('stroke-width', 3);
-
-
-
-	 circles.append('circle')
-	 	.attr('r', function(d,i){
-	 		return d[0]*10;
-	 	})
-	 	.attr('cx', function(d,i){
-
-	 		return cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
-	 	})
-	 	.attr('cy', function(d,i){
-	 		return cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
-	 	})
-	 	.attr('fill','none')
-	 	.attr('stroke','black')
-	 	.attr('stroke-width', 3);
-
-
-	 var circs = [];
-	 for (var i = 0; i < 100; i+=50) {
-	  	circs[i] = i;
-	  }
+	 tfCount = _.sortBy(tfCount, 'count').reverse();
+	 cfCount = _.sortBy(cfCount, 'count').reverse();
 
 	 var pts = [];
+	 var cpts = [];
+	 var tpts = []
 
-	 for(var i =0; i<circs.length; i++){
-	 	var x =  cenX + (200*Math.sin(remap(i,[0,circs.length],[0,Math.PI*2])));
-	 	var y =  cenY - (200*Math.cos(remap(i,[0,circs.length],[0,Math.PI*2])));
+	var winBord = 100;
+	var rad = height/2-20;
+	var wLimit = 500;
+	var radStart = 100;
+	var rStroke = .1
 
-	 	var x1 =  cenX + (200*Math.sin(remap(i+1,[0,circs.length],[0,Math.PI*2])));
-	 	var y2 =  cenY - (200*Math.cos(remap(i+1,[0,circs.length],[0,Math.PI*2])));
+	var tcenX = width*.8;
+	var ccenX = width*.2;
+
+	tfCount =[];
+	cfCount = [];
+
+	tfCount = editCount.filter(function(item) {
+		if(item.person == 't'){
+  			return item;
+		}
+	});
+
+	cfCount = editCount.filter(function(item) {
+		if(item.person == 'c'){
+  			return item;
+		}
+	});
 
 
-	 	pts.push([{'x':x,'y':y},
-	 			{'x':cenX,'y':cenY},
-	 			{'x':x1,'y':y2}]);
+
+	for(var i =0; i<editCount.length; i++){
+
+	 	var n = remap(editCount[i].count,[0,100],[0,rad*.5])
+
+	 	var x =  cenX + ((n+radStart)*Math.sin(remap(i,[0,editCount.length],[0,Math.PI*2])));
+	 	var y =  cenY - ((n+radStart)*Math.cos(remap(i,[0,editCount.length],[0,Math.PI*2])));
+
+	 	var x2 =  cenX + ((n+radStart)*Math.sin(remap(i+1,[0,editCount.length],[0,Math.PI*2])));
+	 	var y2 =  cenY - ((n+radStart)*Math.cos(remap(i+1,[0,editCount.length],[0,Math.PI*2])));
+
+	 	pts.push([{'x':cenX,'y':cenY},
+	 			{'x':x,'y':y},
+	 			{'x':x2, 'y':y2},
+	 			{'x':cenX,'y':cenY}]);
 
 	 }
 
+	 for(var i =0; i<tfCount.length; i++){
+
+		 	var n = remap(tfCount[i].count,[0,100],[0,rad*.5])
+
+		 	var x =  tcenX + ((n+radStart)*Math.sin(remap(i,[0,tfCount.length],[0,Math.PI*2])));
+		 	var y =  cenY - ((n+radStart)*Math.cos(remap(i,[0,tfCount.length],[0,Math.PI*2])));
+
+		 	var x2 =  tcenX + ((n+radStart)*Math.sin(remap(i+1,[0,tfCount.length],[0,Math.PI*2])));
+		 	var y2 =  cenY - ((n+radStart)*Math.cos(remap(i+1,[0,tfCount.length],[0,Math.PI*2])));
+
+
+		 	tpts.push([{'x':tcenX,'y':cenY},
+		 			{'x':x,'y':y},
+		 			{'x':x2, 'y':y2},
+		 			{'x':tcenX,'y':cenY}]);
+
+	 }
+
+	 for(var i =0; i<wLimit; i++){
+
+		 	var n = remap(editCount[i].count,[0,100],[0,rad*.5])
+
+		 	var x =  ccenX + ((n+radStart)*Math.sin(remap(i,[0,wLimit],[0,Math.PI*2])));
+		 	var y =  cenY - ((n+radStart)*Math.cos(remap(i,[0,wLimit],[0,Math.PI*2])));
+
+		 	var x2 =  ccenX + ((n+radStart)*Math.sin(remap(i+1,[0,wLimit],[0,Math.PI*2])));
+		 	var y2 =  cenY - ((n+radStart)*Math.cos(remap(i+1,[0,wLimit],[0,Math.PI*2])));
+
+
+		 	cpts.push([{'x':ccenX,'y':cenY},
+		 			{'x':x,'y':y},
+		 			{'x':x2, 'y':y2},
+		 			{'x':ccenX,'y':cenY}]);
+
+	 }
+
+	
 	function ranNum(min, max) {
     	return Math.random() * (max - min) + min;
 	}
-	//console.log(pts[1][1]);
 
 	 var lf = d3.line()
-	 		   .curve(d3.curveBasis)//BasisOpen)
+	 		   .curve(d3.curveLinearClosed)//BasisOpen)
 	           .x(function(d) { 
 	           		return (d.x); 
 	           })
@@ -231,61 +289,78 @@ d3.text("/source/text.txt",function(data){
 
 	 svg3 = d3.select('#third').append('svg')
 	  .attr("width", width)
-	  .attr("height", height)
-	  .style("background-color",mcolor);
+	  .attr("height", height);
+//	  .style("background-color",mcolor);
+
 
 
 	svg3.selectAll("line")
 	    .data(pts)
 	  	.enter().append("path")
-	    .attr('stroke','blue')
-	 	.attr('stroke-width', 2)
-	 	.attr('fill','none')
-	    .attr("d", lf);
+	    .attr('stroke','white')
+	 	.attr('stroke-width', rStroke)
+	 	.attr('fill',function(d,i){
+	 		if(editCount[i].person == 't'){
+	 			return 'red';
+	 		}
+	 		if(editCount[i].person == 'c'){
+	 			return 'blue';
+	 		}
+	 	})
+	    .attr("d", lf)
+	    .on("mouseover", function () {
+    		d3.select(this).attr("fill", 'black');
+		}).on("mouseout", function () {
+    		d3.select(this).attr("fill", 'red');
+		});
 
-	twKeys = Object.keys(speakers["TRUMP"].wCount);
-	cwKeys = Object.keys(speakers["CLINTON"].wCount);
-	var tfCount = [];
-	var cfCount = [];
-	
-	for(var i =0; i < twKeys.length; i++){
-		tfCount.push(
-			{
-				'word': twKeys[i],
-				'count': speakers['TRUMP'].wCount[twKeys[i]]
-			}
-		)
-	}
-	for(var i =0; i < cwKeys.length; i++){
-		cfCount.push(
-			{
-				'word': cwKeys[i],
-				'count': speakers['CLINTON'].wCount[cwKeys[i]]
-			}
-		)
-	}
-	var allWcount = tfCount.concat(cfCount);
-	allWcount = _.sortBy(allWcount, 'count').reverse();
-	var editCount = []
-	for(var i =0; i< allWcount.length; i++){
-		try{
-			var pos = compendium.analyse(allWcount[i].word)[0].root.tags[0];
-		}catch(err){
-			pos = 'C';
-		}
-		if(pos == 'NNS' || pos == 'NN' || pos == 'VB' || pos == 'JJ' || pos == 'RB'){
-			editCount.push(allWcount[i]);
-		}
-	}
-	console.log(editCount);
-	//console.log(compendium.analyse('we')[0].root.tags[0]);
+	svg3.selectAll("line")
+	    .data(tpts)
+	  	.enter().append("path")
+	    .attr('stroke','white')
+	 	.attr('stroke-width', rStroke)
+	 	.attr('fill','red')
+	    .attr("d", lf)
+	    .on("mouseover", function () {
+    		d3.select(this).attr("fill", 'black');
+		}).on("mouseout", function () {
+    		d3.select(this).attr("fill", 'red');
+		});
+
+	svg3.selectAll("line")
+	    .data(cpts)
+	  	.enter().append("path")
+	    .attr('stroke','white')
+	 	.attr('stroke-width', rStroke)
+	 	.attr('fill','blue')
+	    .attr("d", lf)
+	    .on("mouseover", function () {
+    		d3.select(this).attr("fill", 'black');
+		}).on("mouseout", function () {
+    		d3.select(this).attr("fill", 'blue');
+		});
 
 
 
-	///////Sentiment graphs
-	// console.log(compendium.analyse(lines[1].s)[0].profile.sentiment);
-	//console.log(lines)
+	svg3.append('circle')
+		.attr('cx', ccenX)
+		.attr('cy', cenY)
+		.attr('r', radStart-20)
+		.attr('fill','white');
 
+	svg3.append('circle')
+		.attr('cx', tcenX)
+		.attr('cy', cenY)
+		.attr('r', radStart-20)
+		.attr('fill','white');
+
+	svg3.append('circle')
+		.attr('cx', cenX)
+		.attr('cy', cenY)
+		.attr('r', radStart-40)
+		.attr('fill','white');
+
+/////////////////////////////////END Radial Graph /////////////////////////////////////////////////
 
 	 var sWidth = $("#sentiment").width()-10;
 	 var sHeight = parseInt(window.innerHeight)*.5;
@@ -380,6 +455,12 @@ d3.text("/source/text.txt",function(data){
 	  .attr('display','block')
 	  .style("background-color","none");
 
+	svg5 = d3.select('#gbot').append('svg')
+	  .attr("width", sWidth)
+	  .attr("height", sHeight)
+	  .attr('display','block')
+	  .style("background-color","none");
+
 
 	  /////Circle @ veritces
 	 svg4.selectAll('circle').data(topPts)
@@ -408,11 +489,26 @@ d3.text("/source/text.txt",function(data){
 		.tickSize([sHeight-75])
 		.tickFormat(""));
 
+	 svg5.append('g')
+     	.attr("stroke", "#66686C")
+     	.attr("transform", "translate(" + 0 + "," + (-yAdj*2.9) +")")
+     	.call(d3.axisBottom(xScale)
+		.ticks(25)
+		.tickSize([sHeight-75])
+		.tickFormat(""));
+
      svg4.append("text")
             .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
             .attr("transform", "translate("+ (25) +","+(sHeight/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
             .attr("fill", "#66686C")
             .text("Value");
+
+     svg5.append("text")
+        .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+        .attr("transform", "translate("+ (25) +","+(sHeight/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+        .attr("fill", "#66686C")
+        .text("Value");
+
 
 	 //Define Y scale
 	 var yScale = d3.scaleLinear()
@@ -425,7 +521,16 @@ d3.text("/source/text.txt",function(data){
 	.attr("transform", "translate(" + 45 + "," + yAdj+")")
 	.call(d3.axisLeft(yScale)
 		.ticks(5)
-		.tickSize(-sWidth)
+		.tickSize(-sWidth+85)
+		.tickFormat(d3.format(".0s")));
+
+		//Create Y axis
+	svg5.append("g")
+	.attr("stroke", "#66686C")
+	.attr("transform", "translate(" + 45 + "," + yAdj+")")
+	.call(d3.axisLeft(yScale)
+		.ticks(5)
+		.tickSize(-sWidth+85)
 		.tickFormat(d3.format(".0s")));
 
 
@@ -439,6 +544,17 @@ d3.text("/source/text.txt",function(data){
 		stroke: '#66686C'
 	});
 
+  	svg5.selectAll('g').selectAll('path')
+	.styles({
+		stroke: 'none'
+	});
+
+  	svg5.selectAll('g').selectAll('line')
+	.styles({
+		stroke: '#66686C'
+	});
+
+
 	d3.select('.sentiment')
 		.style('overflow','visible')
 
@@ -448,13 +564,15 @@ d3.text("/source/text.txt",function(data){
  	.attr('fill','none')
     .attr("d", lfunc(topPts));
 
+   	 svg5.append("path")
+    .attr('stroke','#3E78B2')
+ 	.attr('stroke-width', 2)
+ 	.attr('fill','none')
+    .attr("d", lfunc(botPts));
 
-	svg5 = d3.select('#gbot').append('svg')
-	  .attr("width", sWidth)
-	  .attr("height", sHeight)
-	  .attr('display','block')
-	  .style("background-color","none");
 
+
+/*
   	svg5.append("path")
 	    .attr('stroke','#3E78B2')
 	 	.attr('stroke-width', 2)
@@ -466,15 +584,13 @@ d3.text("/source/text.txt",function(data){
 	        .domain(sentRange)
 	        .range(clintonRange);
 
-
-
-
 	//Create Y axis
 	svg5.append("g")
 	.attr("class", ".axis ")
 	.attr("transform", "translate(" + 30 + ",0)")
 	.call(d3.axisLeft(yScale2)
 	    .ticks(5));
+	    */
 
 });
 

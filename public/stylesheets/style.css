@@ -1,6 +1,7 @@
 body {
-	width: 100%;
+  width: 100%;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  text-align: center;
 }
 
 a {
@@ -8,16 +9,16 @@ a {
 }
 
 #main{
-	padding: 50px;
+	padding: 0px;
 	text-align: center;
 }
 
 #second{
-	padding: 50px;
+	padding: 0px;
 }
 
 #third{
-	  padding: 50px;
+	  padding: 0px;
 }
 
 #sentiment{
